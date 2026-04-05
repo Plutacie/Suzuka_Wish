@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 
 type Submission = {
   id: string;
@@ -13,22 +13,17 @@ type Submission = {
   updatedAt: string;
 };
 
-function AdminInner() {
-  const searchParams = useSearchParams();
-  const keyFromUrl = searchParams.get("key") ?? "";
-  const [key, setKey] = useState(keyFromUrl);
+export default function AdminPanel() {
   const [rows, setRows] = useState<Submission[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async (k: string) => {
+  const load = useCallback(async () => {
     setError(null);
     setLoading(true);
     setRows(null);
     try {
-      const res = await fetch(
-        `/api/admin/submissions?key=${encodeURIComponent(k)}`
-      );
+      const res = await fetch("/api/admin/submissions");
       const data = (await res.json()) as {
         submissions?: Submission[];
         error?: string;
@@ -46,55 +41,53 @@ function AdminInner() {
   }, []);
 
   useEffect(() => {
-    const k = keyFromUrl.trim();
-    if (k) void load(k);
-  }, [keyFromUrl, load]);
-
-  const onSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      void load(key.trim());
-    },
-    [key, load]
-  );
+    void load();
+  }, [load]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 font-serif">
-      <h1 className="text-xl font-semibold text-zinc-200">管理入口</h1>
-      <p className="mt-2 text-sm text-zinc-500">
-        使用部署时配置的 <code className="text-zinc-400">ADMIN_SECRET</code>{" "}
-        作为密钥查看全部提交。
-      </p>
+      <div className="flex flex-wrap items-baseline justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-zinc-200">全部提交</h1>
+          <p className="mt-2 text-sm text-zinc-500">
+            从首页连点「心愿」五次进入此处；请勿分享
+            <code className="mx-1 text-zinc-400">/admin</code>
+            链接。
+          </p>
+        </div>
+        <div className="flex gap-3 text-sm">
+          <button
+            type="button"
+            onClick={() => void load()}
+            disabled={loading}
+            className="text-zinc-400 underline decoration-zinc-600 underline-offset-2 hover:text-zinc-200 disabled:opacity-50"
+          >
+            刷新
+          </button>
+          <Link
+            href="/"
+            className="text-zinc-400 underline decoration-zinc-600 underline-offset-2 hover:text-zinc-200"
+          >
+            回首页
+          </Link>
+        </div>
+      </div>
 
-      <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-3 sm:flex-row">
-        <input
-          type="password"
-          value={key}
-          onChange={(e) => setKey(e.target.value)}
-          className="flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-zinc-100 outline-none focus:border-zinc-500"
-          placeholder="管理密钥"
-          autoComplete="off"
-        />
-        <button
-          type="submit"
-          disabled={loading || !key.trim()}
-          className="rounded-lg bg-zinc-700 px-6 py-2 text-sm font-medium text-white hover:bg-zinc-600 disabled:opacity-50"
-        >
-          {loading ? "加载中…" : "查看"}
-        </button>
-      </form>
+      {loading ? (
+        <p className="mt-10 text-zinc-500">加载中…</p>
+      ) : null}
 
       {error ? (
-        <p className="mt-4 text-sm text-red-400" role="alert">
+        <p className="mt-10 text-sm text-red-400" role="alert">
           {error}
         </p>
       ) : null}
 
-      {rows && rows.length === 0 ? (
-        <p className="mt-8 text-zinc-500">暂无提交记录。</p>
+      {!loading && !error && rows && rows.length === 0 ? (
+        <p className="mt-10 text-zinc-500">暂无提交记录。</p>
       ) : null}
 
-      {rows && rows.length > 0 ? (
+      {!loading && !error && rows && rows.length > 0 ? (
         <ul className="mt-8 flex flex-col gap-6">
           {rows.map((r) => (
             <li
@@ -118,13 +111,5 @@ function AdminInner() {
         </ul>
       ) : null}
     </div>
-  );
-}
-
-export default function AdminPanel() {
-  return (
-    <Suspense fallback={<p className="p-8 text-zinc-500">加载…</p>}>
-      <AdminInner />
-    </Suspense>
   );
 }

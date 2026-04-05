@@ -18,17 +18,15 @@ npm run dev
 3. 在 Vercel 项目 **Storage / Marketplace** 中为项目添加 **Upstash Redis**（或同类 Redis 集成），确保环境变量中存在：
    - `UPSTASH_REDIS_REST_URL`
    - `UPSTASH_REDIS_REST_TOKEN`
-4. 在 Vercel **Environment Variables** 中新增：
-   - `ADMIN_SECRET`：一串足够长的随机字符串，用于管理后台鉴权。
-5. 重新 Deploy。
+4. 重新 Deploy。
+
+**说明**：管理数据仅依赖「隐蔽入口」（见下）。若有人知道 `/admin` 或接口地址，仍可访问列表；请勿公开传播管理链接。
 
 ## 使用说明
 
 - 访客首页：`/`
 - 代价页：提交心愿后自动跳转 `/cost?id=...`
-- 管理页：`/admin`（页面上**没有公开链接**）  
-  - **入口**：在首页 **2.5 秒内连点标题「心愿」五次**，会跳转到管理页。  
-  - 进入后须输入 `ADMIN_SECRET`；也可直接访问 `/admin?key=你的密钥` 自动拉取（勿把含密钥的链接发给他人）。
+- 管理页：在首页 **2.5 秒内连点标题「心愿」五次** → 跳转 `/admin`，列表会自动加载。也可直接打开 `/admin`（无额外密钥）。
 
 ## 环境变量摘要
 
