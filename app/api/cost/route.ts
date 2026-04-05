@@ -5,16 +5,23 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json()) as { id?: string; costAnswer?: string };
     const id = (body.id ?? "").trim();
-    const costAnswer = body.costAnswer ?? "";
+    const costAnswer = (body.costAnswer ?? "").trim();
 
     if (!id) {
       return NextResponse.json({ error: "缺少记录" }, { status: 400 });
     }
 
+    if (!costAnswer) {
+      return NextResponse.json({ error: "请填写内容" }, { status: 400 });
+    }
+
     const row = await setCostAnswer(id, costAnswer);
     if (!row) {
       return NextResponse.json(
-        { error: "记录不存在或内容为空" },
+        {
+          error:
+            "找不到对应的心愿记录（链接可能过期或环境不一致），请从首页重新填写。",
+        },
         { status: 400 }
       );
     }

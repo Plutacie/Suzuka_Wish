@@ -14,6 +14,22 @@ export type Submission = {
 const ORDER_KEY = "xuyuan:order";
 const itemKey = (id: string) => `xuyuan:s:${id}`;
 
+/** Upstash 客户端默认会把 JSON 字符串反序列化成对象；这里两种都接 */
+function submissionFromRedisValue(raw: unknown): Submission | null {
+  if (raw == null) return null;
+  if (typeof raw === "object" && "id" in (raw as object)) {
+    return raw as Submission;
+  }
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw) as Submission;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 function redisConfigured(): boolean {
   return Boolean(
     process.env.UPSTASH_REDIS_REST_URL &&
@@ -85,9 +101,9 @@ export async function setCostAnswer(
 
   if (redisConfigured()) {
     const redis = await getRedis();
-    const raw = await redis.get<string>(itemKey(id));
-    if (raw == null || typeof raw !== "string") return null;
-    const row = JSON.parse(raw) as Submission;
+    const raw = await redis.get(itemKey(id));
+    const row = submissionFromRedisValue(raw);
+    if (!row) return null;
     row.costAnswer = trimmed;
     row.updatedAt = new Date().toISOString();
     await redis.set(itemKey(id), JSON.stringify(row));
@@ -117,10 +133,9 @@ export async function listSubmissions(): Promise<Submission[]> {
     if (!ids.length) return [];
     const out: Submission[] = [];
     for (const id of ids) {
-      const raw = await redis.get<string>(itemKey(id));
-      if (raw != null && typeof raw === "string") {
-        out.push(JSON.parse(raw) as Submission);
-      }
+      const raw = await redis.get(itemKey(id));
+      const sub = submissionFromRedisValue(raw);
+      if (sub) out.push(sub);
     }
     return out;
   }
