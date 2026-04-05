@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0f0f12;
+  --card: #1a1a22;
+  --border: #2e2e3a;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --accent: #e879f9;
+  --accent-dim: #c026d3;
+}
+
+body {
+  color: var(--text);
+  background: radial-gradient(ellipse 120% 80% at 50% -20%, #2a1535 0%, var(--bg) 55%);
+  min-height: 100vh;
+}
+
+/* 首页：复古米色底（其它路由由各自 main 铺满遮盖） */
+.home-retro {
+  color: #1a1510;
+  background-color: #e8dfc8;
+  background-image:
+    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(184, 134, 11, 0.14) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 100%, rgba(26, 21, 16, 0.06) 0%, transparent 45%),
+    linear-gradient(175deg, #f2ead8 0%, #e5dcc6 42%, #ddd2b8 100%);
+}
